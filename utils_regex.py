@@ -1,5 +1,6 @@
 import re
 import tiktoken
+from rich import print
 
 def extrair_metadados(texto: str):
     # Step name (//STEP001 EXEC ...)
@@ -16,13 +17,19 @@ def extrair_metadados(texto: str):
 
     return step_name, programa, dataset
 
-def dividir_em_chunks_por_tokens(texto, max_tokens=400, overlap=80, modelo="text-embedding-3-small"):
+def dividir_em_chunks_por_tokens(texto, max_tokens=400, overlap=80, modelo="text-embedding-ada-002"):
     """
     Divide o texto em chunks baseados em tokens, com sobreposição.
     """
     enc = tiktoken.encoding_for_model(modelo)
     tokens = enc.encode(texto)
 
+    print(f"Total tokens: {len(tokens)}")
+    print(f"Max tokens: {max_tokens}")
+    print(f"Overlap: {overlap}")
+    
+
+    # Dividir em chunks
     chunks = []
     inicio = 0
 

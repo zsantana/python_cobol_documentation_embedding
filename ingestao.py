@@ -4,16 +4,29 @@ from openai import OpenAI
 from tqdm import tqdm
 from utils_regex import extrair_metadados, dividir_em_chunks_por_tokens
 import time
+from dotenv import load_dotenv
+from rich import print
+
+# Carregar variáveis de ambiente
+load_dotenv()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Conectar usando variáveis de ambiente ou valores padrão
 conn = psycopg2.connect(
-    host="localhost",
-    dbname="documentos",
-    user="postgres",
-    password="senha"
+    host=os.getenv("POSTGRES_HOST", "localhost"),
+    dbname=os.getenv("POSTGRES_DB", "cobol_docs"),
+    user=os.getenv("POSTGRES_USER", "admin"),
+    password=os.getenv("POSTGRES_PASSWORD", "admin123"),
+    port=os.getenv("POSTGRES_PORT", "5432")
 )
 cur = conn.cursor()
+
+def delete_documento():
+    cur.execute("""
+        DELETE FROM documentos_vetorizados
+    """)
+    conn.commit()
 
 def inserir_documento(nome_arquivo, step_name, programa, dataset, chunk_id, conteudo, embedding):
     cur.execute("""
@@ -24,6 +37,9 @@ def inserir_documento(nome_arquivo, step_name, programa, dataset, chunk_id, cont
     conn.commit()
 
 def vetorizar_documentos(diretorio):
+    
+    delete_documento()
+    
     arquivos = [f for f in os.listdir(diretorio) if f.endswith(".md")]
     for nome_arquivo in tqdm(arquivos, desc="Processando arquivos"):
         caminho = os.path.join(diretorio, nome_arquivo)
@@ -38,7 +54,7 @@ def vetorizar_documentos(diretorio):
             while not success:
                 try:
                     response = client.embeddings.create(
-                        model="text-embedding-3-small",
+                        model="text-embedding-ada-002",
                         input=chunk
                     )
                     embedding = response.data[0].embedding

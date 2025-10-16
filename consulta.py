@@ -4,16 +4,17 @@ import os
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 conn = psycopg2.connect(
-    host="localhost",
-    dbname="documentos",
-    user="postgres",
-    password="senha"
+    host=os.getenv("POSTGRES_HOST", "localhost"),
+    dbname=os.getenv("POSTGRES_DB", "cobol_docs"),
+    user=os.getenv("POSTGRES_USER", "admin"),
+    password=os.getenv("POSTGRES_PASSWORD", "admin123"),
+    port=os.getenv("POSTGRES_PORT", "5432")
 )
 cur = conn.cursor()
 
-def buscar_similares(consulta, programa=None, dataset=None, top_k=5):
+def buscar_similares(consulta, top_k=5):
     embedding = client.embeddings.create(
-        model="text-embedding-3-small",
+        model="text-embedding-ada-002",
         input=consulta
     ).data[0].embedding
 
@@ -24,13 +25,6 @@ def buscar_similares(consulta, programa=None, dataset=None, top_k=5):
     """
     filtros = []
     params = [embedding]
-
-    if programa:
-        filtros.append("programa = %s")
-        params.append(programa)
-    if dataset:
-        filtros.append("dataset = %s")
-        params.append(dataset)
 
     if filtros:
         query += " WHERE " + " AND ".join(filtros)

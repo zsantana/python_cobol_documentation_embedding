@@ -3,3 +3,11 @@ psycopg2-binary
 tiktoken
 streamlit
 tqdm
+python-dotenv
+pgvector
+sqlalchemy
+pandas
+numpy
+rich
+plotly 
+scikit-learn
